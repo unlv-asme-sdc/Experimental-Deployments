@@ -1,11 +1,3 @@
-/*
- * This code is for prototyping a 4-wheel holonomic drive
- * where each of the wheels are directly driven by a DC motor
- * and angularly spaced 90 degrees apart
- * 
- * 4-wheel holonomic drive with 90-90-90-90 degree spacing
- */
-
 #include <PS2X_lib.h> //PS2 Controller interface library
 
 PS2X ps2x; //create ps2x object of PS2X Class
@@ -13,8 +5,6 @@ PS2X ps2x; //create ps2x object of PS2X Class
 int error;
 byte vibrate = 0;
 
-//define logic pins for each motor
-//motors are numbered from the front of the robot counter-clockwise
 int enable1 = 11;
 int pow1 = 12;
 int dir1 = 13;
@@ -71,7 +61,7 @@ void setup() {
   }
 
 
-  //setup motor driver logic pins as outputs
+  //setup driver pins
   pinMode(enable1, OUTPUT);
   pinMode(pow1, OUTPUT);
   pinMode(dir1, OUTPUT);
@@ -90,10 +80,8 @@ void setup() {
 }
 
 void loop() {
-  //Serial.print("running");  //for debugging
-  
-  //skip loop if no controller found
-  if (error != 0)
+  //Serial.print("running");
+  if (error != 0)//skip loop if no controller found
   {
     Serial.println("\t\t no controller");
     //disable driers
@@ -119,13 +107,10 @@ void loop() {
   int RX = ps2x.Analog(PSS_RX);   //0=left   255=right
   int RY = ps2x.Analog(PSS_RY);   //0=forward   255=backward
 
-  //define factors that influence each motor's power
   int straight = 0;
   int side = 0;
   int turn = 0;
 
-  //for debugging
-  //display joystick readings
   Serial.print(LX);
   Serial.print("\t");
   Serial.print(LY);
@@ -177,7 +162,6 @@ void loop() {
     turn = -(RX - 127) *  100/127;    //side factor scaled to 100 -
   }
 
-  //for debugging
   //display factors
   Serial.print(straight);
   Serial.print("\t");
@@ -188,8 +172,7 @@ void loop() {
 
   //set each motor's direction and speed
   //speed1
-  int speed1 = straight - side + turn;  //signs for terms in this equation will vary for each motor
-  //determine direction
+  int speed1 = straight - side + turn;
   if(speed1 >= 0)
   {
     digitalWrite(dir1, HIGH);
@@ -199,7 +182,6 @@ void loop() {
     digitalWrite(dir1, LOW);
   }
   
-  //determine power by taking absolute value and scalling speed to use in arduino analogWrite()
   speed1 = speed1 * 2.55;
   if(speed1 < 0)
   {
@@ -215,8 +197,7 @@ void loop() {
   }
   
   //speed2
-  int speed2 = straight + side + turn;    //signs for terms in this equation will vary for each motor
-  //determine direction
+  int speed2 = straight + side + turn;
   if(speed2 >= 0)
   {
     digitalWrite(dir2, HIGH);
@@ -226,12 +207,15 @@ void loop() {
     digitalWrite(dir2, LOW);
   }
 
-  //determine power by taking absolute value and scalling speed to use in arduino analogWrite()
+  //Serial.print(speed2);
+  //Serial.print("\t");
   speed2 = speed2 * 2.55;
   if(speed2 < 0)
   {
     speed2 = -speed2;
   }
+  //Serial.print(speed2);
+  //Serial.print("\n");
   if(speed2 > 255)
   {
     analogWrite(pow2, 255);
@@ -242,8 +226,7 @@ void loop() {
   }
   
   //speed3
-  int speed3 = -straight + side + turn;   //signs for terms in this equation will vary for each motor
-  //determine direction
+  int speed3 = -straight + side + turn;
   if(speed3 >= 0)
   {
     digitalWrite(dir3, HIGH);
@@ -252,8 +235,7 @@ void loop() {
   {
     digitalWrite(dir3, LOW);
   }
-
-  //determine power by taking absolute value and scalling speed to use in arduino analogWrite()
+  
   speed3 = speed3 * 2.55;
   if(speed3 < 0)
   {
@@ -269,8 +251,7 @@ void loop() {
   }
 
   //speed 4
-  int speed4 = -straight - side + turn;   //signs for terms in this equation will vary for each motor
-  //determine direction
+  int speed4 = -straight - side + turn;
   if(speed4 >= 0)
   {
     digitalWrite(dir4, HIGH);
@@ -279,8 +260,7 @@ void loop() {
   {
     digitalWrite(dir4, LOW);
   }
-
-  //determine power by taking absolute value and scalling speed to use in arduino analogWrite()
+  
   speed4 = speed4 * 2.55;
   if(speed4 < 0)
   {
