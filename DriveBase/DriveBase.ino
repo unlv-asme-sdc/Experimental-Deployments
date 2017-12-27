@@ -1,10 +1,30 @@
-#include <PS2X_lib.h> //PS2 Controller interface library
+/*Welcome, this is the final, ultimate program for the offensive robot. Here is the main setup.
+Anything that's acting up in regards to something with Network in it's name, ask Allen for help.
+List of things to do:  
+      1. We have to set up at least 3 classes, that are simply called by the loop.
+              a) Drive
+              b) Intake
+              c) Shooter
+Besides all that the code needs more commenting for future programs to reference back when copying and pasting.
 
-PS2X ps2x; //create ps2x object of PS2X Class
+*/
 
-int error;
-byte vibrate = 0;
+#include "NetworkTable.h"
+#include <PS2X_lib.h>
+#include <PacketSerial.h>
 
+
+NetworkTable network = NetworkTable(10, 10);
+PacketSerial myPacketSerial;
+PS2X ps2x;
+bool blink_value = false;
+unsigned long last_blink = 0;
+
+
+//define logic pins for each motor
+//motors are numbered from the front of the robot counter-clockwise
+//1-4 are for the drivers. 5 is for the intake. 6 is for the shooter.
+//A FIFTH ONE IS NEEDED!
 int enable1 = 11;
 int pow1 = 12;
 int dir1 = 13;
@@ -20,48 +40,29 @@ int dir3 = 7;
 int enable4 = 2;
 int pow4 = 3;
 int dir4 = 4;
+/*
+int enable5 = ;
+int pow5 = ;
+int dir5 = ;
+
+int enable6 = ;
+int pow6 = ;
+int dir6 = ;
+*/
 
 
-void setup() {
-    Serial.begin(250000);
-
-    //check controller status
-    error = ps2x.config_gamepad(50, 51, 52, 53, true, true); //setup pins and settings:  
-    //GamePad(clock, command, attention, data, Pressures?, Rumble?) check for error
-
-    if (error == 0) {
-      Serial.println("Found Controller, configured successful");
-      Serial.println("Try out all the buttons, X will vibrate the controller, faster as you press harder;");
-      Serial.println("holding L1 or R1 will print out the analog stick values.");
-      Serial.println("Go to www.billporter.info for updates and to report bugs.");
-    }
-
-    else if (error == 1)
-      Serial.println("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
-
-    else if (error == 2)
-      Serial.println("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
-
-    else if (error == 3)
-      Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
-
-    Serial.print(ps2x.Analog(1), HEX);
-  
-  int type = ps2x.readType();
-  switch (type) {
-    case 0:
-      Serial.println("Unknown Controller type");
-      break;
-    case 1:
-      Serial.println("DualShock Controller Found");
-      break;
-    case 2:
-      Serial.println("GuitarHero Controller Found");
-      break;
-  }
-
-
-  //setup driver pins
+void setup()
+{
+	    pinMode(13, OUTPUT);
+	    ps2x.config_gamepad();
+	    ps2x.read_gamepad();
+	Serial.begin(115200);
+	Serial1.begin(115200);
+	myPacketSerial.setStream(&Serial1);
+	    myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
+	    network.processPacketFromSender(myPacketSerial, buffer, size);
+    	});
+    	network.setPS2(&ps2x);
   pinMode(enable1, OUTPUT);
   pinMode(pow1, OUTPUT);
   pinMode(dir1, OUTPUT);
@@ -76,49 +77,52 @@ void setup() {
 
   pinMode(enable4, OUTPUT);
   pinMode(pow4, OUTPUT);
-  pinMode(dir4, OUTPUT);
+  pinMode(dir4, OUTPUT); 
+  
+}
+
+void ledService()
+{
+	// TODO: change led blink from timer to watchdog
+	unsigned long temp = millis() - last_blink;
+	if((temp > 500))
+	{
+		last_blink = millis();
+		blink_value = !blink_value;
+		digitalWrite(13, blink_value);
+	}
 }
 
 void loop() {
-  //Serial.print("running");
-  if (error != 0)//skip loop if no controller found
-  {
-    Serial.println("\t\t no controller");
-    //disable driers
-    digitalWrite(enable1, LOW);
-    digitalWrite(enable2, LOW);
-    digitalWrite(enable3, LOW);
-    digitalWrite(enable4, LOW); 
-    return;
-  }
+	myPacketSerial.update();
+	ledService();
+ 
   
-  //enable drivers
-  digitalWrite(enable1, HIGH);
-  digitalWrite(enable2, HIGH);
-  digitalWrite(enable3, HIGH);
-  digitalWrite(enable4, HIGH); 
-
-  //read controller
-  ps2x.read_gamepad(false, vibrate);
-
+	if (network.getLastPS2PacketTime() > 500 || ps2x.Button(PSB_CROSS))
+	{
+		digitalWrite(enable1, LOW);
+		digitalWrite(enable2, LOW);
+		digitalWrite(enable3, LOW);
+		digitalWrite(enable4, LOW); 
+  	} else {
+		digitalWrite(enable1, HIGH);
+		digitalWrite(enable2, HIGH);
+		digitalWrite(enable3, HIGH);
+		digitalWrite(enable4, HIGH); 
+	}
   //get joystick readings, 0-255 centered on 128
   int LX = ps2x.Analog(PSS_LX);   //0=left   255=right
   int LY = ps2x.Analog(PSS_LY);   //0=forward   255=backward
   int RX = ps2x.Analog(PSS_RX);   //0=left   255=right
   int RY = ps2x.Analog(PSS_RY);   //0=forward   255=backward
 
+  //be sure to add another for the 5th.
   int straight = 0;
   int side = 0;
   int turn = 0;
-
-  Serial.print(LX);
-  Serial.print("\t");
-  Serial.print(LY);
-  Serial.print("\t");
-  Serial.print(RX);
-  Serial.print("\t");
-  Serial.print(RY);
-  Serial.print("\t");
+  
+  //for debugging
+  //display joystick readings
 
   //Determine straight factor
   if(LY <= 130 && LY >= 125)  //joystick is centered verticaly
@@ -162,14 +166,6 @@ void loop() {
     turn = -(RX - 127) *  100/127;    //side factor scaled to 100 -
   }
 
-  //display factors
-  Serial.print(straight);
-  Serial.print("\t");
-  Serial.print(side);
-  Serial.print("\t");
-  Serial.print(turn);
-  Serial.print("\n");
-
   //set each motor's direction and speed
   //speed1
   int speed1 = straight - side + turn;
@@ -207,15 +203,12 @@ void loop() {
     digitalWrite(dir2, LOW);
   }
 
-  //Serial.print(speed2);
-  //Serial.print("\t");
   speed2 = speed2 * 2.55;
   if(speed2 < 0)
   {
     speed2 = -speed2;
   }
-  //Serial.print(speed2);
-  //Serial.print("\n");
+
   if(speed2 > 255)
   {
     analogWrite(pow2, 255);
@@ -225,7 +218,6 @@ void loop() {
     analogWrite(pow2, speed2);
   }
   
-  //speed3
   int speed3 = -straight + side + turn;
   if(speed3 >= 0)
   {
@@ -274,4 +266,8 @@ void loop() {
   {
     analogWrite(pow4, speed2);
   }
+		Serial.println(speed1);
+		Serial.println();
 }
+
+
