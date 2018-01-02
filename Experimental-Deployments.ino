@@ -95,31 +95,31 @@ void loop() {
     // Intake
     if(R1_Pressed)
     {
-      intakemotor.setPower(-0.5);
-      chamber.setPosition(135);
-      intake.setPosition(65);
+      intakemotor.setPower(-1);
+      chamber.setPosition(170);
+      intake.setPosition(90.7);
     }
 
     if(R1_Released)
     {
       intakemotor.setPower(0);
-      chamber.setPosition(93);
-      intake.setPosition(157);
+      chamber.setPosition(128);
+      intake.setPosition(178);
     }
     
     // Outake
     if(L1_Pressed)
     {
       intakemotor.setPower(1);
-      chamber.setPosition(150);
-      intake.setPosition(65);
+      chamber.setPosition(170);
+      intake.setPosition(90.7);
     }
 
     if(L1_Released)
     {
       intakemotor.setPower(0);
-      chamber.setPosition(93);
-      intake.setPosition(157);
+      chamber.setPosition(128);
+      intake.setPosition(178);
     }
     
     // Actuate Chamber (put tennis ball into shooter)
@@ -130,7 +130,7 @@ void loop() {
 
     if(R2_Released)
     {
-      chamber.setPosition(93);
+      chamber.setPosition(128);
     }
     
     //Arm Shooter
