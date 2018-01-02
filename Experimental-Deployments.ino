@@ -68,13 +68,19 @@ void ledService()
 }
 
 void loop() {
-  
+  // trigger network services
   myPacketSerial.update();
+
+  // trigger led (human readable) services.
   ledService();
-  chassis.drive(ps2x);
   
+  // drive chassis
+  chassis.drive(ps2x);
+
+  // update target values every 9ms
   if(millis() - last_update > 9)
   {
+    // Button Variables
     bool cross = ps2x.Button(PSB_CROSS);
     bool circle = ps2x.Button(PSB_CIRCLE);
     bool triangle = ps2x.Button(PSB_TRIANGLE);
@@ -93,13 +99,15 @@ void loop() {
     bool L2_Released = ps2x.ButtonReleased(PSB_L2);
 
     // Intake
+    // actuate devices to intake tennis balls. Arguments are experimetnally determined / calculated.
     if(R1_Pressed)
     {
-      intakemotor.setPower(-1);
-      chamber.setPosition(170);
+      intakemotor.setPower(-1); // all speed controllers extended from Motor class have setPower(float power) function. Value between -1 (FUll Reverse) to 1 (FULL Forward).
+      chamber.setPosition(170); // HS485 servos have setPosition(float position). Value between 0 and 180 degrees.
       intake.setPosition(90.7);
     }
 
+    // return to idle positions
     if(R1_Released)
     {
       intakemotor.setPower(0);
@@ -160,7 +168,8 @@ void loop() {
     maestro.queTarget(3, HIGH);
 
   }
-  
+
+  // Trigger MiniMaestroService
   maestro.service();
 }
 
