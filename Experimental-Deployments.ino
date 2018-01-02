@@ -73,7 +73,7 @@ void loop() {
   ledService();
   chassis.drive(ps2x);
   
-  if(millis() - last_update > 20)
+  if(millis() - last_update > 9)
   {
     bool cross = ps2x.Button(PSB_CROSS);
     bool circle = ps2x.Button(PSB_CIRCLE);
