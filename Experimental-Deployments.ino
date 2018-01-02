@@ -16,25 +16,26 @@ TalonSR talon = TalonSR(maestro, 1);
 */
 
 
-// MaestroServices
+// MiniMaestroServices construction
 SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
 
-// Subsystems
-HS485 chamber = HS485(maestro, 0);
+// Subsystems construction
+HS485 chamber = HS485(maestro, 0); // Some objects can use MiniMaestroService to controll devices. See docs.
 HS485 intake = HS485(maestro, 1);
 TalonSR shooter = TalonSR(maestro, 2);
 PololuG2 intakemotor = PololuG2(maestro, 3, 4, 5);
 
-// Drive base
+// Drive base construction
 PololuG2 rightmotor1 = PololuG2(2, 3, 4);
 PololuG2 rightmotor2 = PololuG2(5, 6, 7);
 PololuG2 leftmotor1 = PololuG2(8, 9, 10);
 PololuG2 leftmotor2 = PololuG2(13, 11, 12);
 
+// Can construct drive bases using any speed controllers extended from Motor class. (TalonSR and PololuG2).
 TankDrive chassis = TankDrive(leftmotor1, leftmotor2, rightmotor1, rightmotor2);
 
-// Networking
+// Network & Controller construction
 PS2X ps2x;
 NetworkTable network = NetworkTable(10, 10);
 PacketSerial myPacketSerial;
@@ -44,27 +45,36 @@ float rightvalue = 0;
 unsigned long last_blink;
 unsigned long last_update;
 void setup() {
+  // prevents devices from actuating on startup.
   delay(1000);
+
+  // initialize MiniMaestroService communication
   maestroSerial.begin(115200);
+
+  // enable ps2x networking
   ps2x.config_gamepad();
   ps2x.read_gamepad();
+
+  // enable debug usb (Serial) and radio serial (Serial1)
   Serial.begin(115200);
   Serial1.begin(115200);
+
+  // binds radio PacketSerial(encoding&decoding services) to NetworkTable class. Uses lambda expressions. 
   myPacketSerial.setStream(&Serial1);
   myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
   network.processPacketFromSender(myPacketSerial, buffer, size);
   });
+
+  // sets ps2x controlls.
   network.setPS2(ps2x);
+
+  // reverses forward direction of left tankdrive wheels.
   chassis.reverseLeftMotors(true);
 }
 
 void ledService()
 {
-  unsigned long value = millis() - last_blink;
-  if(value > 500)
-  {
-    last_blink = millis();
-  }
+  // cant add any led services right now as pin 13 is being used for driving a pololuG2.
 }
 
 void loop() {
