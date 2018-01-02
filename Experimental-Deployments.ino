@@ -31,7 +31,8 @@ PololuG2 rightmotor1 = PololuG2(2, 3, 4);
 PololuG2 rightmotor2 = PololuG2(5, 6, 7);
 PololuG2 leftmotor1 = PololuG2(8, 9, 10);
 PololuG2 leftmotor2 = PololuG2(13, 11, 12);
-TankDrive chassis = TankDrive(&leftmotor1, &leftmotor2, &rightmotor1, &rightmotor2);
+
+TankDrive chassis = TankDrive(leftmotor1, leftmotor2, rightmotor1, rightmotor2);
 
 // Networking
 PS2X ps2x;
@@ -52,7 +53,7 @@ void setup() {
   myPacketSerial.setPacketHandler([](const uint8_t* buffer, size_t size) {
   network.processPacketFromSender(myPacketSerial, buffer, size);
   });
-  network.setPS2(&ps2x);
+  network.setPS2(ps2x);
   chassis.reverseLeftMotors(true);
 }
 
