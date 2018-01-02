@@ -17,7 +17,7 @@ TalonSR talon = TalonSR(maestro, 1);
 
 
 // MaestroServices
-SoftwareSerial maestroSerial(18, 19); // Connect A1 to Maestro's RX. A0 must remain disconnected.
+SoftwareSerial maestroSerial(22, 23); // Connect A1 to Maestro's RX. A0 must remain disconnected.
 MiniMaestroService maestro(maestroSerial);
 
 // Subsystems
