@@ -44,6 +44,7 @@ float rightvalue = 0;
 unsigned long last_blink;
 unsigned long last_update;
 void setup() {
+  delay(1000);
   maestroSerial.begin(115200);
   ps2x.config_gamepad();
   ps2x.read_gamepad();
